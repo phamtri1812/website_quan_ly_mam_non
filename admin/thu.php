@@ -1,0 +1,92 @@
+<?php
+    require_once("../connect.php");
+    session_start();
+    
+    ##########################################################
+        #Xuất file excel
+       
+            $s=$conn->query("SELECT count(*) FROM `gv` ");
+            while($r1=$s->fetch_assoc()){
+                $c=$r1["count(*)"];
+            }
+
+            $data=array();
+            $q=$conn->query("SELECT * FROM `gv` WHERE MSGV!='GV0'");
+
+            for($i=0;$i<$c;$i++){
+                while($r=$q->fetch_assoc()){
+                    $data[]=array($r["MSGV"], $r["HOTENGV"], $r["NGAYSINH"],$r["DIACHI"], $r["CMNDCCCD"],
+                     $r["SDT"],$r["NGAYVAOLAM"], $r["TRINHDO"],$r["GIOITINH"], $r["TENDN"], $r["NANGKHIEU"]);
+                }
+               
+            }
+            require "../PHPExcel-1.8/Classes/PHPExcel.php";
+
+            //Khởi tạo đối tượng
+            $excel = new PHPExcel();
+            //Chọn trang cần ghi (là số từ 0->n)
+            $excel->setActiveSheetIndex(0);
+            //Tạo tiêu đề cho trang. (có thể không cần)
+            $excel->getActiveSheet()->setTitle('Danh sách giáo viên');
+
+            //Xét chiều rộng cho từng, nếu muốn set height thì dùng setRowHeight()
+            $excel->getActiveSheet()->getColumnDimension('A')->setWidth(10);
+            $excel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('C')->setWidth(15);
+            $excel->getActiveSheet()->getColumnDimension('D')->setWidth(50);
+            $excel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+            $excel->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('I')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('J')->setWidth(20);
+            $excel->getActiveSheet()->getColumnDimension('K')->setWidth(20);
+
+            //Xét in đậm cho khoảng cột
+            $excel->getActiveSheet()->getStyle('A1:K1')->getFont()->setBold(true);
+            //Tạo tiêu đề cho từng cột
+            //Vị trí có dạng như sau:
+            /**
+             * |A1|B1|C1|..|n1|
+             * |A2|B2|C2|..|n1|
+             * |..|..|..|..|..|
+             * |An|Bn|Cn|..|nn|
+             */
+
+            $excel->getActiveSheet()->setCellValue('A1', 'Mã số');
+            $excel->getActiveSheet()->setCellValue('B1', 'Họ tên');
+            $excel->getActiveSheet()->setCellValue('C1', 'Ngày sinh');
+            $excel->getActiveSheet()->setCellValue('D1', 'Địa chỉ');
+            $excel->getActiveSheet()->setCellValue('E1', 'cmnd/cccd');
+            $excel->getActiveSheet()->setCellValue('F1', 'Điện thoại');
+            $excel->getActiveSheet()->setCellValue('G1', 'Ngày vào làm');
+            $excel->getActiveSheet()->setCellValue('H1', 'Trình độ');
+            $excel->getActiveSheet()->setCellValue('I1', 'Giới tính');
+            $excel->getActiveSheet()->setCellValue('J1', 'Tên tài khoản');
+            $excel->getActiveSheet()->setCellValue('K1', 'Năng khiếu');
+            // thực hiện thêm dữ liệu vào từng ô bằng vòng lặp
+            // dòng bắt đầu = 2
+            $numRow = 2;
+            foreach ($data as $row) {
+                $excel->getActiveSheet()->setCellValue('A' . $numRow, $row[0]);
+                $excel->getActiveSheet()->setCellValue('B' . $numRow, $row[1]);
+                $excel->getActiveSheet()->setCellValue('C' . $numRow, $row[2]);
+                $excel->getActiveSheet()->setCellValue('D' . $numRow, $row[3]);
+                $excel->getActiveSheet()->setCellValue('E' . $numRow, $row[4]);
+                $excel->getActiveSheet()->setCellValue('F' . $numRow, $row[5]);
+                $excel->getActiveSheet()->setCellValue('G' . $numRow, $row[6]);
+                $excel->getActiveSheet()->setCellValue('H' . $numRow, $row[7]);
+                $excel->getActiveSheet()->setCellValue('I' . $numRow, $row[8]);
+                $excel->getActiveSheet()->setCellValue('J' . $numRow, $row[9]);
+                $excel->getActiveSheet()->setCellValue('K' . $numRow, $row[10]);
+                $numRow++;
+            }
+            // Khởi tạo đối tượng PHPExcel_IOFactory để thực hiện ghi file
+            // ở đây mình lưu file dưới dạng excel2007
+
+            header('Content-type: application/vnd.ms-excel');
+            header('Content-Disposition: attachment; filename="Danh sách giáo viên.xls"');
+            PHPExcel_IOFactory::createWriter($excel, 'Excel2007')->save('php://output');
+                    
+        
+ ?>
